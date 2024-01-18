@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>Todo App</title>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded shadow-md w-96">
+        <h1 class="text-2xl font-bold mb-4">Todo App</h1>
+
+        <div class="mb-4">
+            <input type="text" id="taskInput" class="w-full px-4 py-2 border rounded" placeholder="Add a new task">
+        </div>
+
+        <button onclick="addTask()" class="bg-blue-500 text-white px-4 py-2 rounded">Add Task</button>
+
+        <ul id="taskList" class="mt-4">
+            <!-- Tasks will be added here dynamically -->
+        </ul>
+    </div>
+
+    <script>
+        const apiBaseUrl = 'http://127.0.0.1:4000/api'; // Replace with your actual API base URL
+
+        // Fetch tasks from the API and populate the task list
+        async function fetchTasks() {
+            const response = await fetch(`${apiBaseUrl}/tasks`);
+            const tasks = await response.json();
+
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+
+            tasks.forEach(task => {
+                const taskItem = createTaskElement(task);
+                taskList.appendChild(taskItem);
+            });
+        }
+
+        // Create task element with HTML structure
+        function createTaskElement(task) {
+            const taskItem = document.createElement('li');
+            taskItem.className = 'mb-2';
+            taskItem.setAttribute('data-task-id', task.id);
+            taskItem.innerHTML = `
+        <div class="flex justify-between items-center bg-gray-200 p-2 rounded">
+          <input type="checkbox" onclick="toggleComplete(this, '${task.id}')" ${task.completed ? 'checked' : ''}>
+          <span class="task-text" onclick="editTask(this, '${task.id}')">${task.text}</span>
+          <div>
+            <button onclick="removeTask('${task.id}')" class="text-red-500">Remove</button>
+          </div>
+        </div>
+      `;
+
+            if (task.completed) {
+                const taskText = taskItem.querySelector('.task-text');
+                taskText.style.textDecoration = 'line-through';
+            }
+
+            return taskItem;
+        }
+
+        // Add task to the API and update the UI
+        async function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const taskText = taskInput.value.trim();
+
+            if (taskText !== '') {
+                const response = await fetch(`${apiBaseUrl}/tasks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: taskText, completed: false }),
+                });
+
+                const newTask = await response.json();
+                const taskList = document.getElementById('taskList');
+                const taskItem = createTaskElement(newTask);
+                taskList.appendChild(taskItem);
+                taskInput.value = '';
+            }
+        }
+
+        // Remove task from the API and update the UI
+        async function removeTask(taskId) {
+            const response = await fetch(`${apiBaseUrl}/tasks/${taskId}`, {
+                method: 'DELETE',
+            });
+            if (response.ok) {
+                const taskItem = document.querySelector(`[data-task-id="${taskId}"]`);
+                taskItem.remove();
+            }
+        }
+
+        // Edit task in the API and update the UI
+        async function editTask(taskTextElement, taskId) {
+            const newText = prompt('Edit task:', taskTextElement.innerText);
+
+            if (newText !== null) {
+                const response = await fetch(`${apiBaseUrl}/tasks/${taskId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: newText }),
+                });
+
+                if (response.ok) {
+                    taskTextElement.innerText = newText;
+                }
+            }
+        }
+
+        // Toggle task completion status in the API and update the UI
+        async function toggleComplete(checkbox, id) {
+            const taskText = checkbox.parentElement.querySelector('.task-text');
+            // console.log(checkbox.parentElement)
+            // const taskId = taskText.parentElement.dataset.taskId;
+            const taskId = id;
+            const response = await fetch(`${apiBaseUrl}/tasks/${taskId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ completed: checkbox.checked }),
+            });
+
+            if (response.ok) {
+                if (checkbox.checked) {
+                    taskText.style.textDecoration = 'line-through';
+                } else {
+                    taskText.style.textDecoration = 'none';
+                }
+            }
+        }
+
+        // Initial fetch of tasks when the page loads
+        fetchTasks();
+    </script>
+</body>
+
+</html>
