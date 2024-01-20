@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	Routes "github.com/nileshnk/golang-todo-app/router/routes"
 )
 var tasks []Task
 
@@ -33,7 +34,7 @@ func mainRouter(r chi.Router) {
 		fs.ServeHTTP(w, r);
 	})
 
-	r.Route("/api", apiRouter);
+	r.Route("/api", Routes.ApiRouter);
 	tasks = append(tasks, Task{Id: 1, Text: "Task 1", Completed: false})
 	tasks = append(tasks, Task{Id: 2, Text: "Task 2", Completed: false})
 
@@ -45,7 +46,7 @@ type Task struct {
 	Completed bool `json:"completed"`
 }
 
-func apiRouter(r chi.Router) {
+func ApiRouter(r chi.Router) {
 	r.Get("/tasks", func(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
