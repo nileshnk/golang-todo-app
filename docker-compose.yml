@@ -1,0 +1,31 @@
+version: "3.6"
+
+networks:
+  mynetwork:
+
+services:
+  database:
+    container_name: "database"
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5435:5432"
+    networks:
+      - mynetwork
+
+  todo_app:
+    container_name: "todo_app"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "4000:4000"
+    networks:
+      - mynetwork
