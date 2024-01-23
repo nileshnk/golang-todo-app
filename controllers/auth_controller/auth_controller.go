@@ -1,10 +1,12 @@
 package auth_controller
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
@@ -265,5 +267,55 @@ func SignOut(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 		Message: "User logged out successfully",
 		Data:    nil,
+	})
+}
+
+
+func AuthMiddleware (next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// read access token from cookies
+
+		if strings.HasPrefix(r.URL.Path, "/api") {
+			token, err := r.Cookie("access_token")
+			// fmt.Println(r.Cookies());
+			if err != nil {
+				fmt.Println("Error reading access token from cookies")
+				fmt.Println(err)
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte("Unauthorized! Access token not found"))
+				return
+			}
+
+			// bearerToken := r.Header.Get("Authorization")
+			bearerToken := token.Value
+			fmt.Println(bearerToken)
+
+			// if !strings.HasPrefix(bearerToken, "Bearer") {
+			// 	w.WriteHeader(http.StatusUnauthorized)
+			// 	w.Write([]byte("Unauthorized! Bearer token not found"))
+			// 	return
+			// }
+
+			accessToken := bearerToken //strings.Split(bearerToken, " ")[1];
+
+			ok, claims, validateErr := ValidateAccessToken(accessToken)
+			if validateErr != nil {
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte("Unauthorized! Invalid token"))
+				return
+			}
+
+			if !ok {
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte("Unauthorized! Invalid token"))
+				return
+			}
+			// append userId from token to request context
+			r = r.WithContext(context.WithValue(r.Context(), "userId", claims["userId"]))
+
+			fmt.Println("Authorized")
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }
