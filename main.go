@@ -38,7 +38,7 @@ func main() {
 
 	RouteHandler.Route("/", Router.MainRouter)
 
-	PORT := os.Getenv("PORT")
+	PORT := os.Getenv("APP_PORT")
 	if PORT == "" {
 		PORT = "4000"
 	}
