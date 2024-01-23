@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
+	"github.com/nileshnk/golang-todo-app/controllers/auth_controller"
 	"github.com/nileshnk/golang-todo-app/controllers/db_controller"
 	Router "github.com/nileshnk/golang-todo-app/router"
 )
@@ -26,27 +27,22 @@ func main() {
 
 	migrationsStatus, migrationsErr := db_controller.ApplyMigrations(DBInstance)
 	if migrationsErr != nil {
-		fmt.Println(migrationsErr);
+		fmt.Println(migrationsErr)
 		// panic(migrationsErr)
 	}
 	log.Println(migrationsStatus.Message)
 
-
 	RouteHandler := chi.NewRouter()
+
+	RouteHandler.Use(auth_controller.AuthMiddleware)
+
 	RouteHandler.Route("/", Router.MainRouter)
 
-	// createServer := func() *http.Server {
-	// 	return &http.Server{
-	// 		Addr: ":8080",
-	// 	}	
-	// }
-
-	// createServer().ListenAndServe()
 	PORT := os.Getenv("PORT")
 	if PORT == "" {
 		PORT = "4000"
 	}
-	ServerAddress := fmt.Sprintf("127.0.0.1:%s", PORT);
+	ServerAddress := fmt.Sprintf("127.0.0.1:%s", PORT)
 	http.ListenAndServe(ServerAddress, RouteHandler)
 
 }
