@@ -48,15 +48,14 @@ func GetDBInstance() *sql.DB {
 	return DBInstance
 }
 
-
-func ApplyMigrations(db *sql.DB)  (Types.AppResponse, error){
+func ApplyMigrations(db *sql.DB) (Types.AppResponse, error) {
 	migrationsPath := os.Getenv("MIGRATIONS_PATH")
 	dbName := os.Getenv("DATABASE_NAME")
 	if dbName == "" {
 		dbName = "todo"
 	}
 	if migrationsPath == "" {
-		migrationsPath = "/database/migrations";
+		migrationsPath = "/database/migrations"
 	}
 
 	driver, driverErr := postgres.WithInstance(db, &postgres.Config{})
@@ -71,7 +70,7 @@ func ApplyMigrations(db *sql.DB)  (Types.AppResponse, error){
 		log.Fatal(err)
 		return Types.AppResponse{Success: false, Message: "Error applying migrations"}, err
 	}
-	
+
 	if err := m.Up(); err != nil {
 
 		if err == migrate.ErrNoChange {
@@ -83,4 +82,3 @@ func ApplyMigrations(db *sql.DB)  (Types.AppResponse, error){
 
 	return Types.AppResponse{Success: true, Message: "Migrations applied successfully"}, nil
 }
-
