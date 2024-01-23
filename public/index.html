@@ -7,9 +7,38 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <title>Todo App</title>
 </head>
+<script>
+    const apiBaseUrl = '/api';
+    const authBaseUrl = '/auth';
+    async function checkLogin() {
+        console.log("checkLogin");
+        const response = await fetch(`${apiBaseUrl}/tasks`, {
+            method: 'GET',
+        });
+        if (response.status === 401) {
+            console.log("catch blck")
+            openLoginModal();
+            return
+        }
+        console.log(response.status);
+        const json = await response.json();
+        console.log(json)
+    }
+    checkLogin();
+</script>
 
-<body class="bg-gray-100 min-h-screen flex items-center justify-center">
-    <div class="bg-white p-8 rounded shadow-md w-96">
+<body class="bg-gray-100 min-h-screen flex-col items-center justify-center">
+    <div id="navbar" class="bg-blue-500 text-white p-4 w-full mb-4 hidden">
+        <div id="navbar-content" class="flex justify-between items-center">
+            <div id="user-info">
+                <!-- User information will be displayed here -->
+            </div>
+            <button id="logoutButton" onclick="logout()"
+                class="bg-white text-blue-500 px-4 py-2 rounded">Logout</button>
+        </div>
+    </div>
+
+    <div class="bg-white p-8 rounded mx-auto items-center justify-center shadow-md w-96">
         <h1 class="text-2xl font-bold mb-4">Todo App</h1>
 
         <div class="mb-4">
@@ -21,16 +50,112 @@
         <ul id="taskList" class="mt-4">
             <!-- Tasks will be added here dynamically -->
         </ul>
+
+        <!-- Button to trigger the login modal -->
+        <!-- <button onclick="openLoginModal()" class="mt-4 bg-gray-500 text-white px-4 py-2 rounded">Login</button> -->
+
+        <!-- Login Modal -->
+        <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+            <div class="absolute inset-0 bg-black opacity-50"></div>
+            <div class="bg-white p-8 rounded shadow-md w-96 z-50">
+                <!-- Your login form goes here -->
+                <h2 class="text-xl font-bold mb-4">Login</h2>
+                <form id="loginForm">
+                    <!-- Your login form fields go here -->
+                    <div class="mb-4">
+                        <label for="email" class="block text-sm font-medium text-gray-600">Email:</label>
+                        <input type="text" id="email" name="email" class="mt-1 p-2 border rounded w-full">
+                    </div>
+                    <div class="mb-4">
+                        <label for="password" class="block text-sm font-medium text-gray-600">Password:</label>
+                        <input type="password" id="password" name="password" class="mt-1 p-2 border rounded w-full">
+                    </div>
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Login</button>
+                </form>
+
+                <!-- Button to open the Signup Modal -->
+                <button onclick="openSignupModal()" class="mt-4 bg-green-500 text-white px-4 py-2 rounded">Sign
+                    Up</button>
+                <!-- End of login form -->
+                <!-- <button onclick="closeLoginModal()" class="mt-4 bg-gray-500 text-white px-4 py-2 rounded">Close</button> -->
+            </div>
+        </div>
+
+        <!-- Signup Modal -->
+        <div id="signupModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+            <div class="absolute inset-0 bg-black opacity-50"></div>
+            <div class="bg-white p-8 rounded shadow-md w-96 z-50">
+                <!-- Your signup form goes here -->
+                <h2 class="text-xl font-bold mb-4">Signup</h2>
+                <form id="signupForm">
+                    <!-- Your signup form fields go here -->
+                    <div class="mb-4">
+                        <label for="signupName" class="block text-sm font-medium text-gray-600">Name:</label>
+                        <input type="text" id="signupName" name="signupName" class="mt-1 p-2 border rounded w-full">
+                    </div>
+                    <div class="mb-4">
+                        <label for="signupEmail" class="block text-sm font-medium text-gray-600">Email:</label>
+                        <input type="text" id="signupEmail" name="signupEmail" class="mt-1 p-2 border rounded w-full">
+                    </div>
+                    <div class="mb-4">
+                        <label for="signupPassword" class="block text-sm font-medium text-gray-600">Password:</label>
+                        <input type="password" id="signupPassword" name="signupPassword"
+                            class="mt-1 p-2 border rounded w-full">
+                    </div>
+                    <div class="mb-4">
+                        <label for="signupConfirmPassword" class="block text-sm font-medium text-gray-600">Confirm
+                            Password:</label>
+                        <input type="password" id="signupConfirmPassword" name="signupConfirmPassword"
+                            class="mt-1 p-2 border rounded w-full">
+                    </div>
+                    <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Signup</button>
+
+                </form>
+                <!-- End of signup form -->
+                <!-- <button onclick="closeSignupModal()"
+                    class="mt-4 bg-gray-500 text-white px-4 py-2 rounded">Close</button> -->
+                <button onclick="openLoginModal()" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded">Back to
+                    Login</button>
+                <small id="signupSuccess"
+                    class="hidden block w-full px-4 py-2 m-2 bg-green-500 text-white rounded text-center cursor-pointer">Success!
+                    Login Again!</small>
+            </div>
+        </div>
+        <!-- End of Signup Modal -->
+
     </div>
+</body>
 
-    <script>
-        const apiBaseUrl = '/api' //'http://127.0.0.1:4000/api'; // Replace with your actual API base URL
 
-        // Fetch tasks from the API and populate the task list
-        async function fetchTasks() {
-            const response = await fetch(`${apiBaseUrl}/tasks`);
+
+
+<script>
+    // Fetch tasks from the API and populate the task list
+
+    function openSignupModal() {
+        // Hide login modal
+        document.getElementById('loginModal').classList.add('hidden');
+        // Show signup modal
+        document.getElementById('signupModal').classList.remove('hidden');
+    }
+
+    function closeSignupModal() {
+        document.getElementById('signupModal').classList.add('hidden');
+    }
+
+    async function fetchTasks() {
+        try {
+            console.log(document.cookie);
+            const response = await fetch(`${apiBaseUrl}/tasks`, {
+            });
             const tasks = await response.json();
-
+            console.log(tasks)
+            if (response.status === 401) {
+                console.log("catch blck")
+                openLoginModal();
+                return
+            }
+            closeLoginModal();
             const taskList = document.getElementById('taskList');
             taskList.innerHTML = '';
 
@@ -38,109 +163,229 @@
                 const taskItem = createTaskElement(task);
                 taskList.appendChild(taskItem);
             });
-        }
 
-        // Create task element with HTML structure
-        function createTaskElement(task) {
-            const taskItem = document.createElement('li');
-            taskItem.className = 'mb-2';
-            taskItem.setAttribute('data-task-id', task.id);
-            taskItem.innerHTML = `
-        <div class="flex justify-between items-center bg-gray-200 p-2 rounded">
-          <input type="checkbox" onclick="toggleComplete(this, '${task.id}')" ${task.completed ? 'checked' : ''}>
-          <span class="task-text" onclick="editTask(this, '${task.id}')">${task.text}</span>
-          <div>
-            <button onclick="removeTask('${task.id}')" class="text-red-500">Remove</button>
-          </div>
-        </div>
-      `;
-
-            if (task.completed) {
-                const taskText = taskItem.querySelector('.task-text');
-                taskText.style.textDecoration = 'line-through';
-            }
-
-            return taskItem;
-        }
-
-        // Add task to the API and update the UI
-        async function addTask() {
-            const taskInput = document.getElementById('taskInput');
-            const taskText = taskInput.value.trim();
-
-            if (taskText !== '') {
-                const response = await fetch(`${apiBaseUrl}/tasks`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ text: taskText, completed: false }),
-                });
-
-                const newTask = await response.json();
-                const taskList = document.getElementById('taskList');
-                const taskItem = createTaskElement(newTask);
-                taskList.appendChild(taskItem);
-                taskInput.value = '';
+            showNavbar();
+        } catch (error) {
+            if (error.status === 401) {
+                openLoginModal();
             }
         }
+    }
 
-        // Remove task from the API and update the UI
-        async function removeTask(taskId) {
-            const response = await fetch(`${apiBaseUrl}/tasks/${taskId}`, {
-                method: 'DELETE',
-            });
-            if (response.ok) {
-                const taskItem = document.querySelector(`[data-task-id="${taskId}"]`);
-                taskItem.remove();
-            }
+    function showNavbar() {
+        // Check if the user is logged in (you may need to modify this logic based on your authentication)
+        console.log("showNavbar");
+        const isLoggedIn = true; // Replace with your actual authentication check
+
+        if (isLoggedIn) {
+            navbar.classList.remove('hidden');
+            // You can customize the user information display here
+            userInfo.innerHTML = 'Welcome, User123'; // Replace with actual user information
+        }
+    }
+
+    const loginForm = document.getElementById('loginForm');
+    loginForm.addEventListener('submit', login);
+
+    async function login(event) {
+        event.preventDefault();
+        console.log("event here!");
+
+        // Perform the login logic here, e.g., make an API call to authenticate the user
+        // ...
+        const email = new FormData(loginForm).get('email');
+        const password = new FormData(loginForm).get('password');
+
+        const response = await fetch(`${authBaseUrl}/signin`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password }),
+        });
+
+        const data = await response.json();
+        console.log(data)
+        if (data.success) {
+            closeLoginModal();
         }
 
-        // Edit task in the API and update the UI
-        async function editTask(taskTextElement, taskId) {
-            const newText = prompt('Edit task:', taskTextElement.innerText);
+        // After successful login, fetch tasks and show navbar
+        await fetchTasks();
+    }
 
-            if (newText !== null) {
-                const response = await fetch(`${apiBaseUrl}/tasks/${taskId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ text: newText }),
-                });
+    async function logout() {
+        // Perform the logout logic here, e.g., invalidate the user's session
+        // ...
+        const response = await fetch(`${authBaseUrl}/signout`, {
+            method: 'GET',
+        });
+        console.log(response);
+        const json = await response.json();
+        console.log(json)
 
-                if (response.ok) {
-                    taskTextElement.innerText = newText;
-                }
-            }
+        if (response.ok) {
+            openLoginModal();
         }
 
-        // Toggle task completion status in the API and update the UI
-        async function toggleComplete(checkbox, id) {
-            const taskText = checkbox.parentElement.querySelector('.task-text');
-            // console.log(checkbox.parentElement)
-            // const taskId = taskText.parentElement.dataset.taskId;
-            const taskId = id;
-            const response = await fetch(`${apiBaseUrl}/tasks/${taskId}`, {
-                method: 'PATCH',
+        // Hide navbar after logout
+        // navbar.classList.add('hidden');
+
+        // Optionally, redirect the user to the login page or perform any other necessary actions
+        // ...
+    }
+
+    // Create task element with HTML structure
+    function createTaskElement(task) {
+        const taskItem = document.createElement('li');
+        taskItem.className = 'mb-2';
+        taskItem.setAttribute('data-task-id', task.id);
+        taskItem.innerHTML = `
+    <div class="flex justify-between items-center bg-gray-200 p-2 rounded">
+      <input type="checkbox" onclick="toggleComplete(this, '${task.id}')" ${task.completed ? 'checked' : ''}>
+      <span class="task-text" onclick="editTask(this, '${task.id}')">${task.text}</span>
+      <div>
+        <button onclick="removeTask('${task.id}')" class="text-red-500">Remove</button>
+      </div>
+    </div>
+  `;
+
+        if (task.completed) {
+            const taskText = taskItem.querySelector('.task-text');
+            taskText.style.textDecoration = 'line-through';
+        }
+
+        return taskItem;
+    }
+
+    // Add task to the API and update the UI
+    async function addTask() {
+        const taskInput = document.getElementById('taskInput');
+        const taskText = taskInput.value.trim();
+        console.log("Adding task")
+        if (taskText !== '') {
+            console.log("addTask");
+            const response = await fetch(`${apiBaseUrl}/tasks`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ completed: checkbox.checked }),
+                body: JSON.stringify({ text: taskText, completed: false }),
+            });
+
+            const newTask = await response.json();
+            const taskList = document.getElementById('taskList');
+            const taskItem = createTaskElement(newTask);
+            taskList.appendChild(taskItem);
+            taskInput.value = '';
+        }
+    }
+
+    // Remove task from the API and update the UI
+    async function removeTask(taskId) {
+        const response = await fetch(`${apiBaseUrl}/tasks/${taskId}`, {
+            method: 'DELETE',
+        });
+        if (response.ok) {
+            const taskItem = document.querySelector(`[data-task-id="${taskId}"]`);
+            taskItem.remove();
+        }
+    }
+
+    // Edit task in the API and update the UI
+    async function editTask(taskTextElement, taskId) {
+        const newText = prompt('Edit task:', taskTextElement.innerText);
+
+        if (newText !== null) {
+            const response = await fetch(`${apiBaseUrl}/tasks/${taskId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: newText }),
             });
 
             if (response.ok) {
-                if (checkbox.checked) {
-                    taskText.style.textDecoration = 'line-through';
-                } else {
-                    taskText.style.textDecoration = 'none';
-                }
+                taskTextElement.innerText = newText;
             }
         }
+    }
 
-        // Initial fetch of tasks when the page loads
-        fetchTasks();
-    </script>
-</body>
+    // Toggle task completion status in the API and update the UI
+    async function toggleComplete(checkbox, id) {
+        const taskText = checkbox.parentElement.querySelector('.task-text');
+        // console.log(checkbox.parentElement)
+        // const taskId = taskText.parentElement.dataset.taskId;
+        const taskId = id;
+        const response = await fetch(`${apiBaseUrl}/tasks/${taskId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ completed: checkbox.checked }),
+        });
+
+        if (response.ok) {
+            if (checkbox.checked) {
+                taskText.style.textDecoration = 'line-through';
+            } else {
+                taskText.style.textDecoration = 'none';
+            }
+        }
+    }
+
+    // Initial fetch of tasks when the page loads
+    fetchTasks();
+
+    document.getElementById("signupForm").addEventListener("submit", signup);
+    async function signup(event) {
+        event.preventDefault();
+        console.log("event signup!");
+
+        // Perform the login logic here, e.g., make an API call to authenticate the user
+        // ...
+        const name = new FormData(signupForm).get('signupName');
+        const email = new FormData(signupForm).get('signupEmail');
+        const password = new FormData(signupForm).get('signupPassword');
+        const confirmPassword = new FormData(signupForm).get('signupConfirmPassword');
+
+        const response = await fetch(`${authBaseUrl}/signup`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, email, password, confirm_password: confirmPassword }),
+        });
+
+        const data = await response.json();
+        console.log(response)
+        console.log(data)
+        if (data.success) {
+
+            document.getElementById('signupSuccess').classList.remove('hidden');
+            setTimeout(() => {
+                closeSignupModal();
+                document.getElementById('signupSuccess').classList.add('hidden');
+                openLoginModal();
+            }, 2000);
+        } else {
+            alert(data.message + "\n" + data.data[0].error);
+        }
+
+        // After successful login, fetch tasks and show navbar
+        await fetchTasks();
+    }
+
+    // Function to open the login modal
+    function openLoginModal() {
+        closeSignupModal();
+        document.getElementById('loginModal').classList.remove('hidden');
+    }
+
+    // Function to close the login modal
+    function closeLoginModal() {
+        document.getElementById('loginModal').classList.add('hidden');
+    }
+</script>
 
 </html>
